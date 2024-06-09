@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="stylesheet.css" rel="stylesheet" />
+	<title>Data Viewer</title>
+</head>
+<body>
+	<div id="main-content">
+		<details id="load-data-panel" class="panel">
+			<summary>Load data</summary>
+			<form id="load-data-form" action="#" method="get">
+				<fieldset id="load-data-fieldset">
+					<label for="data-file">Select file:</label>
+					<input type="file" name="data-file" id="data-file" accept=".json,application/json">
+					<button type="submit">Load</button>
+				</fieldset>
+				<svg id="load-data-spinner" class="hidden" width="24" height="24" version="1.1" viewBox="0 0 6.35 6.35">
+					<path d="m5.3865 4.4726c-0.64254 1.1129-2.0104 1.5772-3.1977 1.0855s-1.8262-1.7873-1.4936-3.0286c0.3326-1.2413 1.5337-2.0438 2.8078-1.8761s2.2265 1.2538 2.2265 2.5389" fill-opacity="0" stop-color="#000000" stroke="#0f0" stroke-linejoin="round" stroke-width=".79375"/>
+				</svg>
+				<span id="load-data-status"></span>
+			</form>
+		</details>
+		<div id="search-panel" class="panel">
+			<form id="search-form" action="#" method="get" autocomplete="off">
+				<fieldset id="search-fieldset">
+					<label for="search" class="visually-hidden">Search:</label>
+					<input type="text" name="search-text" id="search-text" placeholder="Search">
+					<div>
+						<button type="submit">Search</button>
+						<button type="reset">Clear</button>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+		<div id="results-panel" class="">
+			<ul id="results-list" class="panel">
+			</ul>
+		</div>
+		<div id="info-panel" class="panel">
+			<div>
+				<button id="back-button">&lt; Back</button>
+				<h1 id="info-title"></h1>
+			</div>
+			<div id="info-sections">
+			</div>
+		</div>
+	</div>
+	<script src="main.js" lang="js"></script>
+</body>
+</html>
