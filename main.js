@@ -5,8 +5,8 @@ function setVisible(elem, visible) {
     }
 }
 
-function setLoadingStatus(message) {
-    document.getElementById("load-data-status").textContent = message;
+function setStatusMessage(message) {
+    document.getElementById("status-text").textContent = message;
     console.info(message);
 }
 
@@ -18,8 +18,7 @@ function switchActivity(activity) {
         setVisible(document.getElementById("info-panel"), false);
         document.getElementById("search-fieldset").disabled = false;
         document.getElementById("load-data-fieldset").disabled = false;
-        setVisible(document.getElementById("load-data-spinner"), false);
-        setVisible(document.getElementById("load-data-status"), false);
+        setVisible(document.getElementById("status-panel"), false);
     } else if (activity === "item") {
         setVisible(document.getElementById("search-panel"), false);
         setVisible(document.getElementById("load-data-panel"), false);
@@ -28,8 +27,8 @@ function switchActivity(activity) {
     } else if (activity == "loading") {
         document.getElementById("search-fieldset").disabled = true;
         document.getElementById("load-data-fieldset").disabled = true;
-        setVisible(document.getElementById("load-data-spinner"), true);
-        setVisible(document.getElementById("load-data-status"), true);
+        setVisible(document.getElementById("results-panel"), false);
+        setVisible(document.getElementById("status-panel"), true);
     }
 }
 
@@ -80,9 +79,12 @@ function populateResults(results) {
     }
     let listParentElem = document.getElementById("results-list");
     listParentElem.replaceChildren(...children);
+    switchActivity("search");
 }
 
 function searchTitles() {
+    setStatusMessage("Loading data...")
+    switchActivity("loading");
     const searchText = document.getElementById("search-text").value.toLowerCase();
     const openRequest = indexedDB.open("viewerDB");
     openRequest.onsuccess = (e1) => {
@@ -114,9 +116,9 @@ function searchTitles() {
 function loadDataToIDB(data, clearDB = true) {
     if (clearDB) {
         const deleteRequest = indexedDB.deleteDatabase("viewerDB");
-        setLoadingStatus("Deleting previous database...");
+        setStatusMessage("Deleting previous database...");
         deleteRequest.onsuccess = (e) => {
-            setLoadingStatus("Deleted previous database");
+            setStatusMessage("Deleted previous database");
             loadDataToIDB(data, false);
         };
         deleteRequest.onerror = (e) => {
@@ -127,32 +129,32 @@ function loadDataToIDB(data, clearDB = true) {
         return; // Rest of processing done in recursive function
     }
 
-    setLoadingStatus("Opening database...");
+    setStatusMessage("Opening database...");
     const openRequest = indexedDB.open("viewerDB");
     openRequest.onupgradeneeded = (e) => {
         const db = e.target.result;
         const store = db.createObjectStore("viewerStore", { keyPath: "id" });
         store.createIndex("titleIndex", "title_lower", { unique: true });
-        setLoadingStatus("Upgraded previous database");
+        setStatusMessage("Upgraded previous database");
     };
     openRequest.onsuccess = (e) => {
-        setLoadingStatus("Saving data into database...");
+        setStatusMessage("Saving data into database...");
         const db = e.target.result;
         const tx = db.transaction("viewerStore", "readwrite");
         const store = tx.objectStore("viewerStore");
         for (let i = 0; i < data.items.length; i++) {
             data.items[i].title_lower = data.items[i].title.toLowerCase();
             store.add(data.items[i]);
-            setLoadingStatus("Saved item " + (i + 1) + " of " + data.items.length);
+            setStatusMessage("Saved item " + (i + 1) + " of " + data.items.length);
         }
         tx.oncomplete = (e) => {
-            setLoadingStatus("Saved data into database");
+            setStatusMessage("Saved data into database");
             searchTitles();
             switchActivity("search");
             alert("Data saved succesfully!");
         };
         tx.onerror = (e) => {
-            setLoadingStatus("Error saving data");
+            setStatusMessage("Error saving data");
             alert("Error saving data!");
             console.error("IndexedDB error");
             console.error(e);
@@ -160,7 +162,7 @@ function loadDataToIDB(data, clearDB = true) {
         };
     };
     openRequest.onerror = (e) => {
-        setLoadingStatus("Error saving data");
+        setStatusMessage("Error saving data");
         alert("Error saving data! Please ensure you allowed data storage permission!");
         console.error("IndexedDB error");
         console.error(e);
@@ -171,7 +173,7 @@ function loadDataToIDB(data, clearDB = true) {
 function loadData() {
     const fileElement = document.getElementById("data-file");
     if (fileElement.files.length > 0) {
-        setLoadingStatus("Reading file...");
+        setStatusMessage("Reading file...");
         switchActivity("loading");
         let file = fileElement.files[0];
         let reader = new FileReader();
