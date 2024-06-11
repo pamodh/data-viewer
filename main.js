@@ -37,6 +37,19 @@ function switchActivity(activity) {
     }
 }
 
+function updateColourTheme() {
+    const body = document.body;
+    const select = document.getElementById("datastore-name");
+    const selectedTheme = "theme" + (select.selectedIndex + 1);
+    for (let i = 1; i <= select.length; i++) {
+        let thisTheme = "theme" + i;
+        if (body.classList.contains(thisTheme)) {
+            body.classList.replace(thisTheme, selectedTheme);
+        }
+    }
+    body.classList.add(selectedTheme);
+}
+
 function renderSection(section) {
     let sectionElem = document.createElement("details");
     let titleElem = document.createElement("summary");
@@ -198,6 +211,7 @@ function populateDatastoreNames(results) {
     } else {
         alert("No data loaded! Please load some data to initialise the viewer.");
     }
+    updateColourTheme();
     searchTitles();
 }
 
@@ -304,6 +318,7 @@ function onDocumentLoad() {
         switchActivity("search");
     });
     document.getElementById("datastore-name").addEventListener("change", (e) => {
+        updateColourTheme();
         document.getElementById("search-form").reset();
     });
     loadDatastoreNames();

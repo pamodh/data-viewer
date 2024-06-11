@@ -30,6 +30,26 @@ html {
     margin-bottom: 15px;
 }
 
+#switch-store-panel {
+    color: black;
+    background-color: white;
+}
+
+.theme1 #switch-store-panel {
+    border-color: navy;
+    background-color: lightblue;
+}
+
+.theme2 #switch-store-panel {
+    border-color: hotpink;
+    background-color: lightpink;
+}
+
+.theme3 #switch-store-panel {
+    border-color: #2d2d2d;
+    background-color: lightgrey;
+}
+
 #results-panel {
     padding: 0;
     margin-bottom: 10px;
@@ -180,9 +200,22 @@ html {
 }
 
 .item-section-content .subsection1 {
+    color: black;
+    background-color: white;
     font-weight: bold;
-    background-color: cyan;
     margin-top: 15px;
+}
+
+.theme1 .item-section-content .subsection1 {
+    background-color: cyan;
+}
+
+.theme2 .item-section-content .subsection1 {
+    background-color: hotpink;
+}
+
+.theme3 .item-section-content .subsection1 {
+    background-color: grey;
 }
 
 .item-section-content .subsection2 {
@@ -194,7 +227,8 @@ html {
 }
 
 .item-section-content .subsection3 {
-    background-color: lightgray;
+    color: black;
+    background-color: whitesmoke;
     padding: 2px;
     padding-left: 5px;
     margin-left: 10px;
@@ -202,6 +236,17 @@ html {
     border-radius: 5px;
 }
 
+.theme1 .item-section-content .subsection3 {
+    background-color: lightblue;
+}
+
+.theme2 .item-section-content .subsection3 {
+    background-color: lightpink;
+}
+
+.theme3 .item-section-content .subsection3 {
+    background-color: lightgray;
+}
 
 /* Non-item specific */
 
@@ -235,14 +280,5 @@ h4, h5 {
 	
 	.metadata {
 		color: lightgray;
-	}
-	
-	.item-section-content .subsection1 {
-		background-color: cyan;
-		color: black;
-	}
-
-	.item-section-content .subsection3 {
-		background-color: #343434;
 	}
 }
