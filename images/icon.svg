@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" version="1.1" viewBox="0 0 33.867 33.867" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient id="linearGradient1132" x1="16.499" x2="28.823" y1="15.866" y2="15.866" gradientUnits="userSpaceOnUse">
+<stop stop-color="#808080" offset="0"/>
+<stop stop-color="#fff" offset="1"/>
+</linearGradient>
+<linearGradient id="linearGradient1134" x1="4.7697" x2="17.094" y1="15.866" y2="15.866" gradientUnits="userSpaceOnUse">
+<stop stop-color="#fff" offset="0"/>
+<stop stop-color="#808080" offset="1"/>
+</linearGradient>
+<radialGradient id="radialGradient1175" cx="13.063" cy="14.332" r="5.6892" gradientTransform="matrix(.66709 .74497 -.6577 .58894 13.775 -3.84)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#2a7fff" offset="0"/>
+<stop stop-color="#acf" offset="1"/>
+</radialGradient>
+</defs>
+<g stroke-linejoin="bevel">
+<rect x=".80772" y=".80772" width="32.251" height="32.251" fill="#ffd5e5" stop-color="#000000" stroke="#800033" stroke-width=".52917"/>
+<g transform="matrix(1.1556 0 0 1.1556 -2.6129 -2.7844)" stroke="#000" stroke-width=".68689">
+<path d="m5.0343 25.421 0.41889 1.3824s2.381-0.9734 5.2671-1.7369c4.3012-1.138 6.1 0.82437 6.1 0.82437l0.0091-0.46981-5.0026-3.675z" fill="#999"/>
+<path d="m28.558 25.421-0.41889 1.3824s-2.381-0.9734-5.2671-1.7369c-4.3012-1.138-6.1 0.82437-6.1 0.82437l-0.0091-0.46981 5.7544-3.7418z" fill="#999"/>
+<path d="m16.829 7.8276s-0.374-2.411-6.1355-1.3752c-2.681 0.48198-5.6595 1.3752-5.6595 1.3752v17.719s2.6412-0.63811 5.7124-1.1636c4.3855-0.75043 6.0736 1.0888 6.0736 1.0888z" fill="url(#linearGradient1134)"/>
+<path d="m16.763 7.8276s0.374-2.411 6.1355-1.3752c2.681 0.48198 5.6595 1.3752 5.6595 1.3752v17.719s-2.6412-0.63811-5.7124-1.1636c-4.3855-0.75043-6.0736 1.0888-6.0736 1.0888z" fill="url(#linearGradient1132)"/>
+</g>
+<g transform="matrix(1.0085 -.80743 .77337 1.0529 -10.228 11.576)" stroke="#003380" stroke-width=".81497">
+<rect x="14.16" y="21.042" width="1.2799" height="8.6929" fill="#acf" stop-color="#000000"/>
+<rect x="13.502" y="20.929" width="2.5966" height="1.5686" fill="#acf" stop-color="#000000"/>
+<circle cx="14.6" cy="15.869" r="5.2923" fill="url(#radialGradient1175)" stop-color="#000000"/>
+</g>
+</g>
+</svg>
