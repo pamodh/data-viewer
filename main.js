@@ -1,3 +1,9 @@
+const CONTENT_STORE_INFO = { name: "contentStore", options: { keyPath: "id" } };
+const CONTENT_INDEX_INFO = { name: "titleIndex", keyPath: "title_lower", options: { unique: true } };
+const METADATA_DATABASE_INFO = { name: "metadataDB", version: 1 }
+const METADATA_STORE_INFO = { name: "metadataStore", options: { keyPath: "name" } };
+const METADATA_INDEX_INFO = { name: "nameIndex", keyPath: "name", options: { unique: true } };
+
 function setVisible(elem, visible) {
     elem.classList.remove("hidden");
     if (! visible) {
@@ -7,7 +13,6 @@ function setVisible(elem, visible) {
 
 function setStatusMessage(message) {
     document.getElementById("status-text").textContent = message;
-    console.info(message);
 }
 
 function switchActivity(activity) {
@@ -58,6 +63,81 @@ function showResultInfo(result) {
     switchActivity("item");
 }
 
+function initDatabase(dbInfo, storeInfo, indexInfo) {
+    // database = { name: "", version: 1 }
+    // store = { name: "", options: {} }
+    // index = { name: "", keyPath: "", options: {} }
+    // Returns a promise
+
+    return new Promise((resolve, reject) => {
+        console.info("Initializing database", dbInfo, "with store", storeInfo, "and index", indexInfo);
+        const openRequest = indexedDB.open(dbInfo.name, dbInfo.version ?? 1);
+        openRequest.onupgradeneeded = e => {
+            console.info("Upgrading previous database from", e.oldVersion, "to", e.newVersion);
+            const db = e.target.result;
+            try {
+                db.deleteObjectStore(storeInfo.name);
+                console.info("Deleted datastore", storeInfo.name);
+            } catch (ex) {
+                if (ex instanceof DOMException && ex.name == "NotFoundError") {
+                    console.info("No previous datastore found for", storeInfo.name);
+                } else {
+                    alert("Error initializing database!");
+                    console.error("`Error deleting IndexedDB datastore", storeInfo.name, ex);
+                }
+            }
+            console.info("Creating store", storeInfo);
+            const store = db.createObjectStore(storeInfo.name, storeInfo.options);
+            if (indexInfo) {
+                console.info("Creating index", indexInfo);
+                store.createIndex(indexInfo.name, indexInfo.keyPath, indexInfo.options);
+            }
+        };
+        openRequest.onsuccess = e => {
+            resolve(e.target.result);
+        };
+        openRequest.onerror = e => {
+            reject(e);
+        };
+    });
+}
+
+function deleteDatabase(dbName) {
+    return new Promise((resolve, reject) => {
+        const deleteRequest = indexedDB.deleteDatabase(dbName);
+        deleteRequest.onsuccess = e => {
+            console.info("Deleted database", dbName);
+            resolve(null);
+        };
+        deleteRequest.onerror = e => reject(e);
+    });
+}
+
+function executeDatabaseRead(db, storeName, indexName) {
+    return new Promise((resolve, reject) => {
+        console.info("Read query started for database", db, "store", storeName, "index", indexName);
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const index = store.index(indexName);
+        const cursorRequest = index.openCursor();
+        const results = [];
+        cursorRequest.onsuccess = e => {
+            const cursor = e.target.result;
+            if (cursor) {
+                results.push(cursor.value);
+                cursor.continue();
+            } else { // i.e. end of results
+                console.info("Read query completed with", results.length, "items for database", db, "store", storeName, "index", indexName);
+                db.close();
+                resolve(results);
+            }
+        };
+        cursorRequest.onerror = e => {
+            reject(e);
+        };
+    });
+}
+
 function populateResults(results) {
     let children = []
     results.forEach(result => {
@@ -83,94 +163,113 @@ function populateResults(results) {
 }
 
 function searchTitles() {
+    const searchText = document.getElementById("search-text").value.trim().toLowerCase();
+    const dbName = document.getElementById("datastore-name").value;
+    if (!dbName) {
+        console.warn("Search function called with no database selected");
+        return;
+    }
     setStatusMessage("Loading data...")
     switchActivity("loading");
-    const searchText = document.getElementById("search-text").value.toLowerCase();
-    const openRequest = indexedDB.open("viewerDB");
-    openRequest.onsuccess = (e1) => {
-        const db = e1.target.result;
-        const tx = db.transaction("viewerStore", "readonly");
-        const store = tx.objectStore("viewerStore");
-        const index = store.index("titleIndex");
-        const cursorRequest = index.openCursor();
-        const results = [];
-        cursorRequest.onsuccess = (e2) => {
-            const cursor = e2.target.result;
-            if (cursor) {
-                if (searchText) {
-                    if (cursor.value.title_lower.indexOf(searchText) != -1) {
-                        results.push(cursor.value);
-                    }
-                } else {
-                    results.push(cursor.value);
-                }
-                cursor.continue();
-            } else{
-                // End of results
-                populateResults(results);
+    initDatabase({ name: dbName, version: 1 }, CONTENT_STORE_INFO, CONTENT_INDEX_INFO)
+        .then(db => executeDatabaseRead(db, CONTENT_STORE_INFO.name, CONTENT_INDEX_INFO.name))
+        .then(results => results.filter(item => item.title_lower.indexOf(searchText) >= 0))
+        .then(results => populateResults(results))
+        .catch(ex => {
+            console.error("IndexedDB error in loading search results", ex);
+            alert("Error loading data");
+            switchActivity("search");
+        });
+}
+
+function populateDatastoreNames(results) {
+    const selectElem = document.getElementById("datastore-name");
+    while (selectElem.options.length > 0) {
+        selectElem.remove(0);
+    }
+    results.forEach(result => {
+        let opt = document.createElement("option");
+        opt.value = result.name;
+        opt.text = result.description;
+        selectElem.add(opt);
+    });
+    if (results.length) {
+        selectElem.selectedIndex = 0;
+    } else {
+        alert("No data loaded! Please load some data to initialise the viewer.");
+    }
+    searchTitles();
+}
+
+function loadDatastoreNames() {
+    setStatusMessage("Loading data...")
+    switchActivity("loading");
+    initDatabase(METADATA_DATABASE_INFO, METADATA_STORE_INFO, METADATA_INDEX_INFO)
+        .then(db => executeDatabaseRead(db, METADATA_STORE_INFO.name, METADATA_INDEX_INFO.name))
+        .then(results => populateDatastoreNames(results))
+        .catch(ex => {
+            console.error("IndexedDB error in loading datastore names", ex);
+            alert("Error loading data");
+            switchActivity("search");
+        });
+}
+
+function saveDataToIDB(data) {
+    setStatusMessage("Saving data into database...");
+    switchActivity("loading");
+    console.info("Saving new data to database", METADATA_DATABASE_INFO);
+    initDatabase(METADATA_DATABASE_INFO, METADATA_STORE_INFO, METADATA_INDEX_INFO)
+        .then(db => {
+            console.info("Creating write transaction to metadata database");
+            const tx = db.transaction(METADATA_STORE_INFO.name, "readwrite");
+            const store = tx.objectStore(METADATA_STORE_INFO.name);
+            store.put(data.metadata);
+            return new Promise((resolve, reject) => {
+                tx.oncomplete = e => resolve(db);
+                tx.onerror = e => reject(e);
+            });
+        })
+        .then(db => {
+            console.info("Write transaction completed for metadata store");
+            db.close();
+        })
+        .catch(ex => {
+            console.error("IndexedDB error in saving to metadata database", ex);
+            alert("Error saving data");
+            switchActivity("search");
+        });
+    const contentDBName = data.metadata.name;
+    deleteDatabase(contentDBName)
+        .then(_ => initDatabase({ name: contentDBName, version: 1}, CONTENT_STORE_INFO, CONTENT_INDEX_INFO))
+        .then(db => {
+            console.info("Creating write transaction to content store", CONTENT_STORE_INFO);
+            const tx = db.transaction(CONTENT_STORE_INFO.name, "readwrite");
+            const store = tx.objectStore(CONTENT_STORE_INFO.name);
+            for (let i = 0; i < data.items.length; i++) {
+                data.items[i].title_lower = data.items[i].title.toLowerCase();
+                store.add(data.items[i]);
+                setStatusMessage("Processed item " + (i + 1) + " of " + data.items.length);
             }
-        };
-    }
-}
-
-function loadDataToIDB(data, clearDB = true) {
-    if (clearDB) {
-        const deleteRequest = indexedDB.deleteDatabase("viewerDB");
-        setStatusMessage("Deleting previous database...");
-        deleteRequest.onsuccess = (e) => {
-            setStatusMessage("Deleted previous database");
-            loadDataToIDB(data, false);
-        };
-        deleteRequest.onerror = (e) => {
-            alert("Error deleting previous database!");
-            console.error("IndexedDB error");
-            console.error(e);
-        };
-        return; // Rest of processing done in recursive function
-    }
-
-    setStatusMessage("Opening database...");
-    const openRequest = indexedDB.open("viewerDB");
-    openRequest.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        const store = db.createObjectStore("viewerStore", { keyPath: "id" });
-        store.createIndex("titleIndex", "title_lower", { unique: true });
-        setStatusMessage("Upgraded previous database");
-    };
-    openRequest.onsuccess = (e) => {
-        setStatusMessage("Saving data into database...");
-        const db = e.target.result;
-        const tx = db.transaction("viewerStore", "readwrite");
-        const store = tx.objectStore("viewerStore");
-        for (let i = 0; i < data.items.length; i++) {
-            data.items[i].title_lower = data.items[i].title.toLowerCase();
-            store.add(data.items[i]);
-            setStatusMessage("Saved item " + (i + 1) + " of " + data.items.length);
-        }
-        tx.oncomplete = (e) => {
-            setStatusMessage("Saved data into database");
-            searchTitles();
-            switchActivity("search");
+            console.info("Transaction configured to add", data.items.length, "items");
+            return new Promise((resolve, reject) => {
+                tx.oncomplete = e => resolve(db);
+                tx.onerror = e => reject(e);
+            });
+        })
+        .then(db => {
+            console.info("Write transaction completed for content store", CONTENT_STORE_INFO);
+            db.close();
+            loadDatastoreNames();
             alert("Data saved succesfully!");
-        };
-        tx.onerror = (e) => {
-            setStatusMessage("Error saving data");
-            alert("Error saving data!");
-            console.error("IndexedDB error");
-            console.error(e);
+        })
+        .catch(ex => {
+            console.error("IndexedDB error in saving content data", ex);
+            alert("Error saving data");
             switchActivity("search");
-        };
-    };
-    openRequest.onerror = (e) => {
-        setStatusMessage("Error saving data");
-        alert("Error saving data! Please ensure you allowed data storage permission!");
-        console.error("IndexedDB error");
-        console.error(e);
-        switchActivity("search");
-    };
+        });
 }
 
-function loadData() {
+function saveData() {
     const fileElement = document.getElementById("data-file");
     if (fileElement.files.length > 0) {
         setStatusMessage("Reading file...");
@@ -180,7 +279,7 @@ function loadData() {
         reader.addEventListener("load", (e) => {
             let text = e.target.result;
             let data = JSON.parse(text)
-            loadDataToIDB(data);
+            saveDataToIDB(data);
         });
         reader.readAsText(file);
     } else {
@@ -191,7 +290,7 @@ function loadData() {
 function onDocumentLoad() {
     document.getElementById("load-data-form").addEventListener("submit", (e) => {
         e.preventDefault();
-        loadData();
+        saveData();
     });
     document.getElementById("search-form").addEventListener("submit", (e) => {
         e.preventDefault();
@@ -204,8 +303,11 @@ function onDocumentLoad() {
     document.getElementById("back-button").addEventListener("click", (e) => {
         switchActivity("search");
     });
+    document.getElementById("datastore-name").addEventListener("change", (e) => {
+        document.getElementById("search-form").reset();
+    });
+    loadDatastoreNames();
     switchActivity("search");
-    searchTitles();
 }
 
 window.addEventListener("load", (e) => onDocumentLoad());
