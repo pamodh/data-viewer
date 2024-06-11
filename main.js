@@ -51,7 +51,7 @@ function updateDatastoreInterface() {
     if (select.selectedOptions.length) {
         document.title = select.selectedOptions[0].text + " Viewer";
     } else {
-        document.title = document.head.title; // Use original title
+        document.title = "Data Viewer";
     }
 }
 
