@@ -3,23 +3,23 @@
     "name": "Data Viewer",
     "icons": [
         {
-            "src": "/images/icon.svg",
+            "src": "/data-viewer/images/icon.svg",
             "type": "image/svg+xml",
             "sizes": "128x128"
         },
         {
-            "src": "/images/touch-icon-256.png",
+            "src": "/data-viewer/images/touch-icon-256.png",
             "type": "image/png",
             "sizes": "256x256"
         },
         {
-            "src": "/images/touch-icon-120.png",
+            "src": "/data-viewer/images/touch-icon-120.png",
             "type": "image/png",
             "sizes": "120x120"
         }
     ],
-    "start_url": "/",
+    "start_url": "/data-viewer/",
     "display": "standalone",
-    "scope": "/",
+    "scope": "/data-viewer/",
     "description": "Data Viewer Web Application"
 }
