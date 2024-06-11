@@ -37,7 +37,7 @@ function switchActivity(activity) {
     }
 }
 
-function updateColourTheme() {
+function updateDatastoreInterface() {
     const body = document.body;
     const select = document.getElementById("datastore-name");
     const selectedTheme = "theme" + (select.selectedIndex + 1);
@@ -48,6 +48,11 @@ function updateColourTheme() {
         }
     }
     body.classList.add(selectedTheme);
+    if (select.selectedOptions.length) {
+        document.title = select.selectedOptions[0].text + " Viewer";
+    } else {
+        document.title = document.head.title; // Use original title
+    }
 }
 
 function renderSection(section) {
@@ -211,7 +216,7 @@ function populateDatastoreNames(results) {
     } else {
         alert("No data loaded! Please load some data to initialise the viewer.");
     }
-    updateColourTheme();
+    updateDatastoreInterface();
     searchTitles();
 }
 
@@ -318,7 +323,7 @@ function onDocumentLoad() {
         switchActivity("search");
     });
     document.getElementById("datastore-name").addEventListener("change", (e) => {
-        updateColourTheme();
+        updateDatastoreInterface();
         document.getElementById("search-form").reset();
     });
     loadDatastoreNames();
