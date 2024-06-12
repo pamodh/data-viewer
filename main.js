@@ -313,6 +313,7 @@ function onDocumentLoad() {
     });
     document.getElementById("search-form").addEventListener("submit", (e) => {
         e.preventDefault();
+        document.activeElement.blur();
         searchTitles();
     });
     document.getElementById("search-form").addEventListener("reset", (e) => {
